@@ -13,8 +13,34 @@ describe('Fill Empty Timecards', () => {
     const username = Cypress.env('PERSONIO_USERNAME') || 'dor.yunger@alpineeagle.com'
     const password = Cypress.env('PERSONIO_PASSWORD') || '1Z2w3c$r'
     const employeeId = Cypress.env('PERSONIO_EMPLOYEE_ID') || 27547954
+    const previousMonth = Cypress.env('PREVIOUS_MONTH') === 'true'
     
     logToFile('Starting fill empty timecards test')
+    logToFile(`Previous month mode: ${previousMonth}`)
+    
+    // Calculate the target month (current or previous)
+    const currentDate = new Date()
+    let targetDate
+    
+    if (previousMonth) {
+      // Get previous month
+      targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+      logToFile('Targeting previous month for timecard filling')
+    } else {
+      // Use current month
+      targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+      logToFile('Targeting current month for timecard filling')
+    }
+    
+    const targetYear = targetDate.getFullYear()
+    const targetMonth = targetDate.getMonth() + 1
+    const startDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`
+    
+    // Calculate end date (last day of the target month)
+    const lastDay = new Date(targetYear, targetMonth, 0).getDate()
+    const endDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
+    
+    logToFile(`Target period: ${startDate} to ${endDate}`)
     
     // Step 1: Navigate to login page
     cy.visit('/login/')
@@ -48,7 +74,7 @@ describe('Fill Empty Timecards', () => {
     })
     
     // Step 4: Navigate to company domain and fill empty timecards
-    cy.origin('https://alpine-eagle-gmbh.app.personio.com', { args: { employeeId } }, ({ employeeId }) => {
+    cy.origin('https://alpine-eagle-gmbh.app.personio.com', { args: { employeeId, startDate, endDate, previousMonth, targetDate } }, ({ employeeId, startDate, endDate, previousMonth, targetDate }) => {
       const logToFile = (message) => {
         cy.log(message)
         cy.writeFile('cypress/logs/fill-empty-timecards-debug.log', `${new Date().toISOString()}: ${message}\n`, { flag: 'a+' })
@@ -119,16 +145,32 @@ describe('Fill Empty Timecards', () => {
           return true
         }
         
-        // Skip if it's in the future (only process today or past)
-        const today = new Date().toISOString().split('T')[0]
-        if (timecard.date > today) {
-          return true
+        // For previous month mode: only process timecards from the previous month
+        // For current month mode: skip if it's in the future (only process today or past)
+        if (previousMonth) {
+          // Get the target month's date range
+          const targetYear = targetDate.getFullYear()
+          const targetMonth = targetDate.getMonth() + 1
+          const targetStartDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`
+          const lastDay = new Date(targetYear, targetMonth, 0).getDate()
+          const targetEndDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
+          
+          // Only process timecards within the target month range
+          if (timecard.date < targetStartDate || timecard.date > targetEndDate) {
+            return true
+          }
+        } else {
+          // Current month mode: skip if it's in the future
+          const today = new Date().toISOString().split('T')[0]
+          if (timecard.date > today) {
+            return true
+          }
         }
         
         return false
       }
       
-      logToFile('Starting to process empty timecards...')
+      logToFile(`Starting to process empty timecards for period: ${startDate} to ${endDate}...`)
       
       // Use the exact cookie string provided by user
       const cookieString = '_vwo_uuid_v2=DC297C5C1656F50BDC95CBA2365657E3F|be8c4be57dc267e742a6ce3ca0460543; _fbp=fb.1.1744263825148.670913820242765381; ajs_user_id=null; ajs_group_id=null; ajs_anonymous_id=%220205d21b-be31-482b-afe6-6a79560a5ea3%22; _vwo_uuid=DC297C5C1656F50BDC95CBA2365657E3F; _ga=GA1.1.222114950.1744263825; hubspotutk=4ce5cf7561614f9e25d93c69cd5867ae; _pc=true; product_language=en-GB|27547954; ATHENA_SESSION=b83b1e27-9e93-4d7e-82f9-4c96909c2f69; ATHENA-XSRF-TOKEN=aba2daf9-4327-4dbb-95f0-b968b5523dd7.xbnVxnXS8s4kJ8DDKJ1uWDynZytMqQcKHx2Wi5Ig7oQ; personio_session=eyJpdiI6IlRlZ05JMUttVXFodzd2eXR6WEYzZmc9PSIsInZhbHVlIjoiSm9BVTJ4RXo3RmNOd1ZEUnFtM3FicTRZd3RyeDgvYm4wbUpyUnB4ck1mb2JXVW0vb0FlZTkvR0J1MThjQ2VpZmM2b0Q4Z3BMM21SR3JMbFl3V3B1N00zK3c1UE1vQUF6aHRWWUt0TGhXYU5pWVBpRHZjZFptMDU0QVY3eE5XNmQiLCJtYWMiOiJhZjYxNmU2YWZjMjJjYWM3OWYzYjhmNjM2YWM4NTQ3OTcyYjJjZWFjMzg2NDA3NTViYzIzM2U0OWI1YWZmMjIxIiwidGFnIjoiIn0%3D; _dd_s=aid=r7sp4zusof&rum=0&expire=1753860924146'
@@ -137,13 +179,6 @@ describe('Fill Empty Timecards', () => {
       
       logToFile(`Using exact cookie string: ${cookieString.substring(0, 100)}...`)
       logToFile(`Using CSRF token: ${csrfToken}`)
-      
-      // Get current month's timesheet data
-      const currentDate = new Date()
-      const currentYear = currentDate.getFullYear()
-      const currentMonth = currentDate.getMonth() + 1
-      const startDate = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-01`
-      const endDate = `${currentYear}-${currentMonth.toString().padStart(2, '0')}-31`
       
       logToFile(`Fetching timesheet for period: ${startDate} to ${endDate}`)
       
@@ -165,9 +200,25 @@ describe('Fill Empty Timecards', () => {
           logToFile('✅ Successfully fetched timesheet data')
           
           const timesheetData = response.body
-          const emptyTimecards = timesheetData.timecards.filter(timecard => 
-            isEmptyTimecard(timecard) && !shouldSkipTimecard(timecard)
-          )
+          
+          // Log all timecards for debugging
+          logToFile(`Total timecards in response: ${timesheetData.timecards.length}`)
+          
+          // Filter empty timecards that should be processed
+          const emptyTimecards = timesheetData.timecards.filter(timecard => {
+            const isEmpty = isEmptyTimecard(timecard)
+            const shouldSkip = shouldSkipTimecard(timecard)
+            
+            if (isEmpty && !shouldSkip) {
+              logToFile(`✅ Will process empty timecard for date: ${timecard.date}`)
+            } else if (isEmpty && shouldSkip) {
+              logToFile(`⏭️ Skipping empty timecard for date: ${timecard.date} (off day or outside target range)`)
+            } else if (!isEmpty) {
+              logToFile(`📝 Timecard for date: ${timecard.date} already has periods, skipping`)
+            }
+            
+            return isEmpty && !shouldSkip
+          })
           
           logToFile(`Found ${emptyTimecards.length} empty timecards to fill`)
           

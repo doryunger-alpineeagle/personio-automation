@@ -36,27 +36,53 @@ chmod +x run-personio-filling.sh
 ## Usage
 
 ### Run the Automation
+
+**Current Month (Default):**
 ```bash
 ./run-personio-filling.sh
 ```
 
-### Run Manually with Cypress
+**Previous Month:**
 ```bash
-npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --headed
+./run-personio-filling.sh true
+```
+
+### Run Manually with Cypress
+
+**Current Month:**
+```bash
+npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --env PREVIOUS_MONTH=false --headed
+```
+
+**Previous Month:**
+```bash
+npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --env PREVIOUS_MONTH=true --headed
 ```
 
 ## How It Works
 
 1. **Login**: Authenticates with Personio using credentials from `.env`
-2. **Fetch Timecards**: Retrieves current month's timecard data
-3. **Filter Empty**: Identifies empty timecards (no periods) that are:
+2. **Target Month**: Determines which month to process:
+   - **Current Month** (default): Processes the current month's timecards
+   - **Previous Month**: Processes the previous month's timecards (useful for catching missed days)
+3. **Fetch Timecards**: Retrieves timecard data for the target month
+4. **Filter Empty**: Identifies empty timecards (no periods) that are:
    - Not off days (weekends/holidays)
-   - Today or in the past (no future updates)
-4. **Generate Data**: Creates realistic work periods with:
+   - For current month: Today or in the past (no future updates)
+   - For previous month: All days can be filled (no date restrictions)
+5. **Generate Data**: Creates realistic work periods with:
    - Random start times (7:45-9:05)
    - Calculated end times (8.5-9.5 hours later)
    - Proper UUIDs for timecard and period IDs
-5. **Update API**: Uses PUT requests to update timecards via Personio API
+6. **Update API**: Uses PUT requests to update timecards via Personio API
+
+### Previous Month Mode
+Use the `PREVIOUS_MONTH` parameter to fill timecards for the previous month. This is useful when:
+- You missed filling some days in the previous month
+- You want to ensure all timecards are complete before the month closes
+- The system shows the current month by default, but you need to fill previous month data
+
+**Important**: When `PREVIOUS_MONTH=true`, the script will **only** process timecards from the previous month and will **not** touch any current month timecards, even if they are empty.
 
 ## Security
 

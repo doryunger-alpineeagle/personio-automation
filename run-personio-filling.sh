@@ -5,7 +5,16 @@
 
 set -e  # Exit on any error
 
-echo "🚀 Starting Personio Monthly Timecard Filling..."
+# Check if PREVIOUS_MONTH parameter is provided
+PREVIOUS_MONTH=${1:-false}
+
+if [ "$PREVIOUS_MONTH" = "true" ] || [ "$PREVIOUS_MONTH" = "1" ]; then
+    echo "🚀 Starting Personio Previous Month Timecard Filling..."
+    PREVIOUS_MONTH_ENV="true"
+else
+    echo "🚀 Starting Personio Current Month Timecard Filling..."
+    PREVIOUS_MONTH_ENV="false"
+fi
 
 # Check if .env file exists
 if [ ! -f .env ]; then
@@ -46,6 +55,7 @@ npx cypress run \
     --env PERSONIO_PASSWORD="$PERSONIO_PASSWORD" \
     --env PERSONIO_EMPLOYEE_ID="$PERSONIO_EMPLOYEE_ID" \
     --env PERSONIO_COMPANY_DOMAIN="$PERSONIO_COMPANY_DOMAIN" \
+    --env PREVIOUS_MONTH="$PREVIOUS_MONTH_ENV" \
     --headed
 
 echo "✅ Personio monthly filling completed!" 
