@@ -75,6 +75,37 @@ npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --headed
 
 Check the debug logs in `cypress/logs/personio-monthly-filling-debug.log` for detailed information about the automation process.
 
+## Automated Scheduling
+
+### Cron Job Setup
+The script is configured to run automatically on the last day of each month at 18:30.
+
+**Cron Job Details:**
+```bash
+30 18 28-31 * * [ $(date +%d -d tomorrow) = 01 ] && cd /home/dory/git/personio-automation && ./run-personio-filling.sh >> logs/personio-cron.log 2>&1
+```
+
+**What this does:**
+- Runs at 18:30 (6:30 PM) on days 28-31 of each month
+- Only executes if tomorrow is the 1st (meaning today is the last day of the month)
+- Changes to the project directory before running
+- Logs output to `logs/personio-cron.log`
+
+**To check if the cron job is active:**
+```bash
+crontab -l
+```
+
+**To view the logs:**
+```bash
+tail -f logs/personio-cron.log
+```
+
+**To test the cron logic:**
+```bash
+./test-cron-logic.sh
+```
+
 ## Requirements
 
 - Node.js 18+
