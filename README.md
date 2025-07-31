@@ -104,18 +104,19 @@ Check the debug logs in `cypress/logs/personio-monthly-filling-debug.log` for de
 ## Automated Scheduling
 
 ### Cron Job Setup
-The script is configured to run automatically on the last day of each month at 18:30.
+The script is configured to run automatically on the first day of each month at 9:30 AM with the `PREVIOUS_MONTH` flag enabled.
 
 **Cron Job Details:**
 ```bash
-30 18 28-31 * * [ $(date +%d -d tomorrow) = 01 ] && cd /home/dory/git/personio-automation && ./run-personio-filling.sh >> logs/personio-cron.log 2>&1
+30 9 1 * * cd /home/dory/git/personio-automation && ./run-personio-filling.sh true >> logs/personio-cron.log 2>&1
 ```
 
 **What this does:**
-- Runs at 18:30 (6:30 PM) on days 28-31 of each month
-- Only executes if tomorrow is the 1st (meaning today is the last day of the month)
+- Runs at 9:30 AM on the 1st day of each month
+- Automatically fills the previous month's timecards (using `PREVIOUS_MONTH=true`)
 - Changes to the project directory before running
 - Logs output to `logs/personio-cron.log`
+- Works reliably for all months (including February with 28/29 days)
 
 **To check if the cron job is active:**
 ```bash
