@@ -1,0 +1,19 @@
+2025-07-29T09:01:50.097Z: Visited login page
+2025-07-29T09:01:54.013Z: Aside elements found: true
+2025-07-29T09:01:54.014Z: Cookie popup detected, ACCEPTING...
+2025-07-29T09:01:54.436Z: Found accept button: 
+                  Alles akzeptieren
+                
+2025-07-29T09:01:54.453Z: Cookie popup accepted successfully
+2025-07-29T09:01:50.099Z: Submitted company domain
+2025-07-29T09:02:11.668Z: Current URL after company domain: https://login.personio.com/u/login/identifier?state=hqFo2SBCYTRLTVpXMGU4Q3pOclFPNWpaM0w0Y2d3Z2RJbHM3YqFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIHpoaWM1ZFVBczBfTFNWNFFnb2JQRUdHaHpaMjFNV2xjo2NpZNkgR2RLMUl3anFKNW8zN0piYmJqMzFCU2sxUGRMTlV1UDalb3JnaWS0b3JnX0tDT0Nrdm4yTUkya3l3ZzKnb3JnbmFtZbFhbHBpbmUtZWFnbGUtZ21iaA
+2025-07-29T09:02:13.781Z: Username input found: true
+2025-07-29T09:02:13.782Z: Username input is available, proceeding...
+2025-07-29T09:02:13.784Z: Submitted username
+2025-07-29T09:02:13.786Z: Submitted password
+2025-07-29T09:02:22.486Z: Navigated to company app domain
+2025-07-29T09:02:30.371Z: Cookie popup detected on company domain, ACCEPTING...
+2025-07-29T09:02:32.644Z: Current URL after login: https://alpine-eagle-gmbh.app.personio.com/
+2025-07-29T09:02:32.824Z: Page appears to be fully loaded
+2025-07-29T09:02:22.489Z: Complete login process finished successfully
+2025-07-29T09:02:22.490Z: Navigating to attendance page...
