@@ -35,6 +35,8 @@ chmod +x run-personio-filling.sh
 
 ## Usage
 
+**Default Behavior**: The script runs in **previous month mode** and **headless mode** by default, making it perfect for automated execution.
+
 ### Run the Automation
 
 **Previous Month, Headless (Default):**
@@ -73,8 +75,8 @@ npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --env PREVIO
 
 1. **Login**: Authenticates with Personio using credentials from `.env`
 2. **Target Month**: Determines which month to process:
-   - **Current Month** (default): Processes the current month's timecards
-   - **Previous Month**: Processes the previous month's timecards (useful for catching missed days)
+   - **Previous Month** (default): Processes the previous month's timecards (useful for catching missed days)
+   - **Current Month**: Processes the current month's timecards
 3. **Fetch Timecards**: Retrieves timecard data for the target month
 4. **Filter Empty**: Identifies empty timecards (no periods) that are:
    - Not off days (weekends/holidays)
