@@ -5,8 +5,8 @@
 
 set -e  # Exit on any error
 
-# Check if PREVIOUS_MONTH parameter is provided
-PREVIOUS_MONTH=${1:-false}
+# Check if PREVIOUS_MONTH parameter is provided (default: true for previous month)
+PREVIOUS_MONTH=${1:-true}
 
 # Check if HEADED parameter is provided (default: headless)
 HEADED=${2:-false}

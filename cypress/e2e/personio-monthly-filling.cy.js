@@ -195,14 +195,32 @@ describe('Fill Empty Timecards', () => {
         failOnStatusCode: false
       }).then((response) => {
         logToFile(`Timesheet API response status: ${response.status}`)
+        logToFile(`Response headers: ${JSON.stringify(response.headers, null, 2)}`)
+        logToFile(`Response body type: ${typeof response.body}`)
+        logToFile(`Response body length: ${response.body ? response.body.length : 'null'}`)
         
-        if (response.status === 200 && response.body) {
-          logToFile('✅ Successfully fetched timesheet data')
+                        if (response.status === 200 && response.body) {
+          let timesheetData
           
-          const timesheetData = response.body
-          
-          // Log all timecards for debugging
-          logToFile(`Total timecards in response: ${timesheetData.timecards.length}`)
+          try {
+            // Ensure response.body is a valid object
+            timesheetData = typeof response.body === 'string' ? JSON.parse(response.body) : response.body
+            logToFile('✅ Successfully fetched timesheet data')
+            logToFile(`Response body keys: ${Object.keys(timesheetData)}`)
+            
+            if (!timesheetData.timecards) {
+              logToFile(`❌ No timecards property found in response. Available keys: ${Object.keys(timesheetData)}`)
+              return
+            }
+            
+            // Log all timecards for debugging
+            logToFile(`Total timecards in response: ${timesheetData.timecards.length}`)
+            
+          } catch (error) {
+            logToFile(`❌ JSON parsing error: ${error.message}`)
+            logToFile(`❌ Response body: ${JSON.stringify(response.body, null, 2)}`)
+            return
+          }
           
           // Filter empty timecards that should be processed
           const emptyTimecards = timesheetData.timecards.filter(timecard => {

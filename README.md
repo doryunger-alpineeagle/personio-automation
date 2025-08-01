@@ -37,24 +37,24 @@ chmod +x run-personio-filling.sh
 
 ### Run the Automation
 
-**Current Month, Headless (Default):**
+**Previous Month, Headless (Default):**
 ```bash
 ./run-personio-filling.sh
 ```
 
-**Previous Month, Headless:**
+**Current Month, Headless:**
 ```bash
-./run-personio-filling.sh true
-```
-
-**Current Month, Headed (with browser window):**
-```bash
-./run-personio-filling.sh false true
+./run-personio-filling.sh false
 ```
 
 **Previous Month, Headed (with browser window):**
 ```bash
 ./run-personio-filling.sh true true
+```
+
+**Current Month, Headed (with browser window):**
+```bash
+./run-personio-filling.sh false true
 ```
 
 ### Run Manually with Cypress
@@ -118,12 +118,12 @@ The script is configured to run automatically on the first day of each month at 
 
 **Cron Job Details:**
 ```bash
-30 9 1 * * cd /home/dory/git/personio-automation && ./run-personio-filling.sh true >> logs/personio-cron.log 2>&1
+30 9 1 * * cd /home/dory/git/personio-automation && ./run-personio-filling.sh >> logs/personio-cron.log 2>&1
 ```
 
 **What this does:**
 - Runs at 9:30 AM on the 1st day of each month
-- Automatically fills the previous month's timecards (using `PREVIOUS_MONTH=true`)
+- Automatically fills the previous month's timecards (using default `PREVIOUS_MONTH=true`)
 - Runs in headless mode (no browser window, perfect for automated execution)
 - Changes to the project directory before running
 - Logs output to `logs/personio-cron.log`

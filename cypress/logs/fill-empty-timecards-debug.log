@@ -1,8 +1,76 @@
-2025-08-01T08:21:23.435Z: Starting fill empty timecards test
-2025-08-01T08:21:23.437Z: Previous month mode: false
-2025-08-01T08:21:23.441Z: Targeting current month for timecard filling
-2025-08-01T08:21:23.444Z: Target period: 2025-08-01 to 2025-08-31
-2025-08-01T08:21:23.446Z: Visited login page
-2025-08-01T08:21:23.462Z: Submitted company domain
-2025-08-01T08:21:32.628Z: Submitted username
-2025-08-01T08:21:32.632Z: Submitted password
+2025-08-01T08:29:38.406Z: Starting fill empty timecards test
+2025-08-01T08:29:38.408Z: Previous month mode: false
+2025-08-01T08:29:38.409Z: Targeting current month for timecard filling
+2025-08-01T08:29:38.411Z: Target period: 2025-08-01 to 2025-08-31
+2025-08-01T08:29:38.412Z: Visited login page
+2025-08-01T08:29:38.416Z: Submitted company domain
+2025-08-01T08:29:52.804Z: Submitted username
+2025-08-01T08:29:52.810Z: Submitted password
+2025-08-01T08:30:05.967Z: Navigated to company app domain
+2025-08-01T08:30:05.973Z: Successfully logged in to company domain
+2025-08-01T08:30:05.974Z: Starting to process empty timecards for period: 2025-08-01 to 2025-08-31...
+2025-08-01T08:30:05.975Z: Using exact cookie string: _vwo_uuid_v2=DC297C5C1656F50BDC95CBA2365657E3F|be8c4be57dc267e742a6ce3ca0460543; _fbp=fb.1.174426382...
+2025-08-01T08:30:05.976Z: Using CSRF token: aba2daf9-4327-4dbb-95f0-b968b5523dd7.xbnVxnXS8s4kJ8DDKJ1uWDynZytMqQcKHx2Wi5Ig7oQ
+2025-08-01T08:30:05.977Z: Fetching timesheet for period: 2025-08-01 to 2025-08-31
+2025-08-01T08:30:17.686Z: Timesheet API response status: 200
+2025-08-01T08:30:17.688Z: Response headers: {
+  "date": "Fri, 01 Aug 2025 08:30:17 GMT",
+  "content-type": "application/json",
+  "transfer-encoding": "chunked",
+  "connection": "keep-alive",
+  "set-cookie": [
+    "ATHENA-XSRF-TOKEN=aba2daf9-4327-4dbb-95f0-b968b5523dd7.xbnVxnXS8s4kJ8DDKJ1uWDynZytMqQcKHx2Wi5Ig7oQ; Path=/; Secure; SameSite=Lax",
+    "ATHENA_SESSION=4f069c9a-3d3b-444f-b885-b6a8fb3b1263; Max-Age=2592000; Expires=Sun, 31 Aug 2025 08:30:17 GMT; Path=/; Secure; HTTPOnly; SameSite=Lax"
+  ],
+  "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+  "referrer-policy": "origin-when-cross-origin",
+  "x-content-type-options": "nosniff",
+  "x-xss-protection": "0",
+  "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+  "pragma": "no-cache",
+  "expires": "0",
+  "strict-transport-security": "max-age=31540000; includeSubDomains",
+  "x-frame-options": "DENY",
+  "content-security-policy": "frame-ancestors 'none';",
+  "x-download-options": "noopen",
+  "x-permitted-cross-domain-policies": "none",
+  "content-encoding": "gzip"
+}
+2025-08-01T08:30:17.690Z: Response body type: object
+2025-08-01T08:30:17.691Z: Response body length: undefined
+2025-08-01T08:30:17.692Z: ✅ Successfully fetched timesheet data
+2025-08-01T08:30:17.693Z: Response body keys: timecards,widgets,supervisor_person_id,owner_has_propose_rights
+2025-08-01T08:30:17.694Z: Total timecards in response: 31
+2025-08-01T08:30:17.695Z: 📝 Timecard for date: 2025-08-01 already has periods, skipping
+2025-08-01T08:30:17.696Z: ⏭️ Skipping empty timecard for date: 2025-08-02 (off day or outside target range)
+2025-08-01T08:30:17.697Z: ⏭️ Skipping empty timecard for date: 2025-08-03 (off day or outside target range)
+2025-08-01T08:30:17.698Z: ⏭️ Skipping empty timecard for date: 2025-08-04 (off day or outside target range)
+2025-08-01T08:30:17.699Z: ⏭️ Skipping empty timecard for date: 2025-08-05 (off day or outside target range)
+2025-08-01T08:30:17.701Z: ⏭️ Skipping empty timecard for date: 2025-08-06 (off day or outside target range)
+2025-08-01T08:30:17.702Z: ⏭️ Skipping empty timecard for date: 2025-08-07 (off day or outside target range)
+2025-08-01T08:30:17.703Z: ⏭️ Skipping empty timecard for date: 2025-08-08 (off day or outside target range)
+2025-08-01T08:30:17.703Z: ⏭️ Skipping empty timecard for date: 2025-08-09 (off day or outside target range)
+2025-08-01T08:30:17.705Z: ⏭️ Skipping empty timecard for date: 2025-08-10 (off day or outside target range)
+2025-08-01T08:30:17.706Z: ⏭️ Skipping empty timecard for date: 2025-08-11 (off day or outside target range)
+2025-08-01T08:30:17.707Z: ⏭️ Skipping empty timecard for date: 2025-08-12 (off day or outside target range)
+2025-08-01T08:30:17.708Z: ⏭️ Skipping empty timecard for date: 2025-08-13 (off day or outside target range)
+2025-08-01T08:30:17.708Z: ⏭️ Skipping empty timecard for date: 2025-08-14 (off day or outside target range)
+2025-08-01T08:30:17.709Z: ⏭️ Skipping empty timecard for date: 2025-08-15 (off day or outside target range)
+2025-08-01T08:30:17.710Z: ⏭️ Skipping empty timecard for date: 2025-08-16 (off day or outside target range)
+2025-08-01T08:30:17.711Z: ⏭️ Skipping empty timecard for date: 2025-08-17 (off day or outside target range)
+2025-08-01T08:30:17.711Z: ⏭️ Skipping empty timecard for date: 2025-08-18 (off day or outside target range)
+2025-08-01T08:30:17.712Z: ⏭️ Skipping empty timecard for date: 2025-08-19 (off day or outside target range)
+2025-08-01T08:30:17.713Z: ⏭️ Skipping empty timecard for date: 2025-08-20 (off day or outside target range)
+2025-08-01T08:30:17.714Z: ⏭️ Skipping empty timecard for date: 2025-08-21 (off day or outside target range)
+2025-08-01T08:30:17.714Z: ⏭️ Skipping empty timecard for date: 2025-08-22 (off day or outside target range)
+2025-08-01T08:30:17.715Z: ⏭️ Skipping empty timecard for date: 2025-08-23 (off day or outside target range)
+2025-08-01T08:30:17.716Z: ⏭️ Skipping empty timecard for date: 2025-08-24 (off day or outside target range)
+2025-08-01T08:30:17.717Z: ⏭️ Skipping empty timecard for date: 2025-08-25 (off day or outside target range)
+2025-08-01T08:30:17.717Z: ⏭️ Skipping empty timecard for date: 2025-08-26 (off day or outside target range)
+2025-08-01T08:30:17.718Z: ⏭️ Skipping empty timecard for date: 2025-08-27 (off day or outside target range)
+2025-08-01T08:30:17.719Z: ⏭️ Skipping empty timecard for date: 2025-08-28 (off day or outside target range)
+2025-08-01T08:30:17.720Z: ⏭️ Skipping empty timecard for date: 2025-08-29 (off day or outside target range)
+2025-08-01T08:30:17.721Z: ⏭️ Skipping empty timecard for date: 2025-08-30 (off day or outside target range)
+2025-08-01T08:30:17.722Z: ⏭️ Skipping empty timecard for date: 2025-08-31 (off day or outside target range)
+2025-08-01T08:30:17.723Z: Found 0 empty timecards to fill
+2025-08-01T08:30:17.724Z: No empty timecards found to fill
