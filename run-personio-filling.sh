@@ -67,6 +67,7 @@ npx cypress run \
     --env PERSONIO_EMPLOYEE_ID="$PERSONIO_EMPLOYEE_ID" \
     --env PERSONIO_COMPANY_DOMAIN="$PERSONIO_COMPANY_DOMAIN" \
     --env PREVIOUS_MONTH="$PREVIOUS_MONTH_ENV" \
-    $HEADED_FLAG
+    $HEADED_FLAG \
+    --browser electron
 
 echo "✅ Personio monthly filling completed!" 

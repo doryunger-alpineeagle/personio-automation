@@ -10,6 +10,9 @@ module.exports = defineConfig({
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     responseTimeout: 10000,
+    // Ensure proper headless execution
+    chromeWebSecurity: false,
+    experimentalModifyObstructiveThirdPartyCode: false,
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
