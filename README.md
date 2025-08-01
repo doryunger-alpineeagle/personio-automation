@@ -37,24 +37,34 @@ chmod +x run-personio-filling.sh
 
 ### Run the Automation
 
-**Current Month (Default):**
+**Current Month, Headless (Default):**
 ```bash
 ./run-personio-filling.sh
 ```
 
-**Previous Month:**
+**Previous Month, Headless:**
 ```bash
 ./run-personio-filling.sh true
 ```
 
-### Run Manually with Cypress
-
-**Current Month:**
+**Current Month, Headed (with browser window):**
 ```bash
-npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --env PREVIOUS_MONTH=false --headed
+./run-personio-filling.sh false true
 ```
 
-**Previous Month:**
+**Previous Month, Headed (with browser window):**
+```bash
+./run-personio-filling.sh true true
+```
+
+### Run Manually with Cypress
+
+**Current Month, Headless:**
+```bash
+npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --env PREVIOUS_MONTH=false --headless
+```
+
+**Previous Month, Headed:**
 ```bash
 npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --env PREVIOUS_MONTH=true --headed
 ```
@@ -114,6 +124,7 @@ The script is configured to run automatically on the first day of each month at 
 **What this does:**
 - Runs at 9:30 AM on the 1st day of each month
 - Automatically fills the previous month's timecards (using `PREVIOUS_MONTH=true`)
+- Runs in headless mode (no browser window, perfect for automated execution)
 - Changes to the project directory before running
 - Logs output to `logs/personio-cron.log`
 - Works reliably for all months (including February with 28/29 days)

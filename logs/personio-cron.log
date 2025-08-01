@@ -1,0 +1,25 @@
+🚀 Starting Personio Previous Month Timecard Filling...
+📋 Loading environment variables...
+✅ Environment variables loaded successfully
+👤 Username: dor.yunger@alpineeagle.com
+🏢 Company Domain: alpine-eagle-gmbh
+🆔 Employee ID: 27547954
+🔄 Running Personio monthly filling test...
+Your system is missing the dependency: Xvfb
+
+Install Xvfb and run Cypress again.
+
+Read our documentation on dependencies for more information:
+
+https://on.cypress.io/required-dependencies
+
+If you are using Docker, we provide containers with all required dependencies installed.
+
+----------
+
+Error: spawn Xvfb ENOENT
+
+----------
+
+Platform: linux-x64 (Ubuntu - 22.04)
+Cypress Version: 14.5.3

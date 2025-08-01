@@ -8,12 +8,23 @@ set -e  # Exit on any error
 # Check if PREVIOUS_MONTH parameter is provided
 PREVIOUS_MONTH=${1:-false}
 
+# Check if HEADED parameter is provided (default: headless)
+HEADED=${2:-false}
+
 if [ "$PREVIOUS_MONTH" = "true" ] || [ "$PREVIOUS_MONTH" = "1" ]; then
     echo "🚀 Starting Personio Previous Month Timecard Filling..."
     PREVIOUS_MONTH_ENV="true"
 else
     echo "🚀 Starting Personio Current Month Timecard Filling..."
     PREVIOUS_MONTH_ENV="false"
+fi
+
+if [ "$HEADED" = "true" ] || [ "$HEADED" = "1" ]; then
+    echo "🖥️ Running in headed mode (browser window visible)"
+    HEADED_FLAG="--headed"
+else
+    echo "🖥️ Running in headless mode (no browser window)"
+    HEADED_FLAG="--headless"
 fi
 
 # Check if .env file exists
@@ -56,6 +67,6 @@ npx cypress run \
     --env PERSONIO_EMPLOYEE_ID="$PERSONIO_EMPLOYEE_ID" \
     --env PERSONIO_COMPANY_DOMAIN="$PERSONIO_COMPANY_DOMAIN" \
     --env PREVIOUS_MONTH="$PREVIOUS_MONTH_ENV" \
-    --headed
+    $HEADED_FLAG
 
 echo "✅ Personio monthly filling completed!" 
