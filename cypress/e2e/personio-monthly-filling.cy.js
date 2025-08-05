@@ -9,10 +9,10 @@ describe('Fill Empty Timecards', () => {
       cy.writeFile('cypress/logs/fill-empty-timecards-debug.log', `${new Date().toISOString()}: ${message}\n`, { flag: 'a+' })
     }
     
-    const companyDomain = Cypress.env('PERSONIO_COMPANY_DOMAIN') || 'alpine-eagle-gmbh'
-    const username = Cypress.env('PERSONIO_USERNAME') || 'dor.yunger@alpineeagle.com'
-    const password = Cypress.env('PERSONIO_PASSWORD') || '1Z2w3c$r'
-    const employeeId = Cypress.env('PERSONIO_EMPLOYEE_ID') || 27547954
+    const companyDomain = Cypress.env('PERSONIO_COMPANY_DOMAIN') || ''
+    const username = Cypress.env('PERSONIO_USERNAME') || ''
+    const password = Cypress.env('PERSONIO_PASSWORD') || ''
+    const employeeId = Cypress.env('PERSONIO_EMPLOYEE_ID') || 0
     const previousMonth = Cypress.env('PREVIOUS_MONTH') === 'true'
     
     logToFile('Starting fill empty timecards test')
