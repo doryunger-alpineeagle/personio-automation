@@ -12,11 +12,23 @@ describe('Fill Empty Timecards', () => {
     const companyDomain = Cypress.env('PERSONIO_COMPANY_DOMAIN') || ''
     const username = Cypress.env('PERSONIO_USERNAME') || ''
     const password = Cypress.env('PERSONIO_PASSWORD') || ''
-    const employeeId = Cypress.env('PERSONIO_EMPLOYEE_ID') || 0
+    const employeeId = Cypress.env('PERSONIO_EMPLOYEE_ID') || ''
     const previousMonth = Cypress.env('PREVIOUS_MONTH') === 'true'
     
     logToFile('Starting fill empty timecards test')
     logToFile(`Previous month mode: ${previousMonth}`)
+    
+    // Validate that all required environment variables are present
+    if (!companyDomain || !username || !password || !employeeId) {
+      const missingVars = []
+      if (!companyDomain) missingVars.push('PERSONIO_COMPANY_DOMAIN')
+      if (!username) missingVars.push('PERSONIO_USERNAME')
+      if (!password) missingVars.push('PERSONIO_PASSWORD')
+      if (!employeeId) missingVars.push('PERSONIO_EMPLOYEE_ID')
+      
+      logToFile(`❌ ERROR: Missing required environment variables: ${missingVars.join(', ')}`)
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`)
+    }
     
     // Calculate the target month (current or previous)
     const currentDate = new Date()

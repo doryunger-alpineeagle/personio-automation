@@ -13,6 +13,13 @@ module.exports = defineConfig({
     // Ensure proper headless execution
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: false,
+    env: {
+      PERSONIO_USERNAME: process.env.PERSONIO_USERNAME || '',
+      PERSONIO_PASSWORD: process.env.PERSONIO_PASSWORD || '',
+      PERSONIO_EMPLOYEE_ID: process.env.PERSONIO_EMPLOYEE_ID || '',
+      PERSONIO_COMPANY_DOMAIN: process.env.PERSONIO_COMPANY_DOMAIN || '',
+      PREVIOUS_MONTH: process.env.PREVIOUS_MONTH || 'false'
+    },
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },

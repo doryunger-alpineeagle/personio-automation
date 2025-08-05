@@ -58,15 +58,24 @@ echo "👤 Username: $PERSONIO_USERNAME"
 echo "🏢 Company Domain: $PERSONIO_COMPANY_DOMAIN"
 echo "🆔 Employee ID: $PERSONIO_EMPLOYEE_ID"
 
+# Export environment variables for Cypress
+export PERSONIO_USERNAME
+export PERSONIO_PASSWORD
+export PERSONIO_EMPLOYEE_ID
+export PERSONIO_COMPANY_DOMAIN
+export PREVIOUS_MONTH="$PREVIOUS_MONTH_ENV"
+
 # Run the Cypress test with environment variables
 echo "🔄 Running Personio monthly filling test..."
+echo "🔍 Debug: Environment variables being passed:"
+echo "  PERSONIO_USERNAME: '$PERSONIO_USERNAME'"
+echo "  PERSONIO_PASSWORD: '$PERSONIO_PASSWORD'"
+echo "  PERSONIO_EMPLOYEE_ID: '$PERSONIO_EMPLOYEE_ID'"
+echo "  PERSONIO_COMPANY_DOMAIN: '$PERSONIO_COMPANY_DOMAIN'"
+echo "  PREVIOUS_MONTH: '$PREVIOUS_MONTH_ENV'"
+
 npx cypress run \
     --spec "cypress/e2e/personio-monthly-filling.cy.js" \
-    --env PERSONIO_USERNAME="$PERSONIO_USERNAME" \
-    --env PERSONIO_PASSWORD="$PERSONIO_PASSWORD" \
-    --env PERSONIO_EMPLOYEE_ID="$PERSONIO_EMPLOYEE_ID" \
-    --env PERSONIO_COMPANY_DOMAIN="$PERSONIO_COMPANY_DOMAIN" \
-    --env PREVIOUS_MONTH="$PREVIOUS_MONTH_ENV" \
     $HEADED_FLAG \
     --browser electron
 
