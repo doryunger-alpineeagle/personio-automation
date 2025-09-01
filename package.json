@@ -9,11 +9,17 @@
     "test:chrome": "cypress run --browser chrome",
     "test:firefox": "cypress run --browser firefox"
   },
-  "keywords": ["cypress", "automation", "personio", "testing"],
+  "keywords": [
+    "cypress",
+    "automation",
+    "personio",
+    "testing"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Cypress automation for Personio time tracking",
   "devDependencies": {
-    "cypress": "^14.5.3"
+    "cypress": "^14.5.3",
+    "dotenv": "^17.2.1"
   }
 }
