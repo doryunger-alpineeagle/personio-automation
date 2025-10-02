@@ -54,38 +54,107 @@ describe('Fill Empty Timecards', () => {
     
     logToFile(`Target period: ${startDate} to ${endDate}`)
     
-    // Step 1: Navigate to login page
-    cy.visit('/login/')
-    logToFile('Visited login page')
+    // Step 1: Try going directly to the company-specific login URL to bypass the main login page
+    const companyLoginUrl = `https://${companyDomain}.app.personio.com/login`
+    logToFile(`Attempting direct login to: ${companyLoginUrl}`)
     
-    // Step 2: Fill company domain with force
-    cy.get('input[name="hostname"]').should('be.visible')
-    cy.get('input[name="hostname"]').clear({ force: true }).type(companyDomain, { force: true })
-    cy.get('button[type="submit"]').click({ force: true })
-    logToFile('Submitted company domain')
+    cy.visit(companyLoginUrl)
+    logToFile('Visited company-specific login page')
     
-    // Step 3: Handle cross-origin navigation to login.personio.com
-    cy.origin('https://login.personio.com', { args: { username, password } }, ({ username, password }) => {
-      const logToFile = (message) => {
-        cy.log(message)
-        cy.writeFile('cypress/logs/fill-empty-timecards-debug.log', `${new Date().toISOString()}: ${message}\n`, { flag: 'a+' })
+    // Wait for the page to load
+    cy.get('body').should('be.visible')
+    cy.wait(3000)
+    
+    // Check if we get redirected to the main login page or if we're on the company login
+    cy.url().then((url) => {
+      logToFile(`Current URL after visit: ${url}`)
+      
+      if (url.includes('login.personio.com')) {
+        // We're on the main login page, try the original approach
+        logToFile('Redirected to main login page, trying original approach')
+        
+        // Hide automation indicators that might trigger bot detection
+        cy.window().then((win) => {
+          // Remove webdriver property
+          delete win.navigator.webdriver
+          // Override the webdriver property
+          Object.defineProperty(win.navigator, 'webdriver', {
+            get: () => undefined,
+          })
+          // Remove automation indicators if chrome exists
+          if (win.chrome && win.chrome.runtime) {
+            delete win.chrome.runtime.onConnect
+            delete win.chrome.runtime.onMessage
+          }
+        })
+        
+        // Handle cookie consent dialog if it appears
+        cy.get('body').then(($body) => {
+          if ($body.find('button:contains("Alles akzeptieren"), button:contains("Accept All")').length > 0) {
+            logToFile('Cookie consent dialog detected, clicking Accept All')
+            cy.get('button:contains("Alles akzeptieren"), button:contains("Accept All")').first().click()
+            cy.wait(2000) // Wait for dialog to close
+          }
+        })
+        
+        // Debug: Log all input elements on the page
+        cy.get('body').then(($body) => {
+          logToFile('Looking for input elements on login page...')
+          cy.get('input').then(($inputs) => {
+            logToFile(`Found ${$inputs.length} input elements`)
+            $inputs.each((i, input) => {
+              logToFile(`Input ${i}: type="${input.type}", name="${input.name}", placeholder="${input.placeholder}", id="${input.id}"`)
+            })
+          })
+        })
+        
+        // Wait for the email input field to be visible
+        cy.get('input[name="username"], input[id="username"]', { timeout: 15000 }).should('be.visible')
+        
+        // Fill the email/username field
+        cy.get('input[name="username"], input[id="username"]').first().clear({ force: true }).type(username, { force: true })
+        logToFile(`Filled email/username: ${username}`)
+        
+        // Find and click the Continue button
+        cy.get('button:contains("Continue"), button:contains("Weiter"), button[type="submit"]').should('be.visible').first().click({ force: true })
+        logToFile('Clicked Continue button')
+      } else {
+        // We're on the company login page, proceed directly to login
+        logToFile('Successfully on company login page, proceeding with login')
+        
+        // Wait for the email input field to be visible
+        cy.get('input[name="username"], input[id="username"]', { timeout: 15000 }).should('be.visible')
+        
+        // Fill the email/username field
+        cy.get('input[name="username"], input[id="username"]').first().clear({ force: true }).type(username, { force: true })
+        logToFile(`Filled email/username: ${username}`)
+        
+        // Find and click the Continue button
+        cy.get('button:contains("Continue"), button:contains("Weiter"), button[type="submit"]').should('be.visible').first().click({ force: true })
+        logToFile('Clicked Continue button')
       }
-      
-      cy.wait(3000)
-      
-      // Fill in login credentials
-      cy.get('input[name="username"]').clear().type(username)
-      cy.get('button[type="submit"]').click()
-      logToFile('Submitted username')
-      
-      cy.wait(2000)
-      cy.get('input[name="password"]').should('be.visible')
-      cy.get('input[name="password"]').clear().type(password)
-      cy.get('button[type="submit"]').click()
-      logToFile('Submitted password')
     })
     
-    // Step 4: Navigate to company domain and fill empty timecards
+    // Step 4: Wait for password field and complete login (still on login.personio.com)
+    cy.wait(3000)
+    
+    // Wait for password field to appear after clicking Continue
+    cy.get('input[type="password"]', { timeout: 15000 }).should('be.visible')
+    
+    // Fill in password
+    logToFile(`About to fill password field with: ${password}`)
+    cy.get('input[type="password"]').first().clear({ force: true }).type(password, { force: true })
+    logToFile('Filled password')
+    
+    // Click login/submit button
+    cy.get('button[type="submit"], button:contains("Sign in"), button:contains("Login"), button:contains("Einloggen")').should('be.visible').first().click({ force: true })
+    logToFile('Submitted login credentials')
+    
+    // Wait for navigation to company domain
+    cy.wait(5000)
+    logToFile('Navigated to company app domain')
+    
+    // Step 5: Navigate to company domain and fill empty timecards
     cy.origin('https://alpine-eagle-gmbh.app.personio.com', { args: { employeeId, startDate, endDate, previousMonth, targetDate } }, ({ employeeId, startDate, endDate, previousMonth, targetDate }) => {
       const logToFile = (message) => {
         cy.log(message)

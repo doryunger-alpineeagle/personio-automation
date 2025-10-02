@@ -14,6 +14,8 @@ module.exports = defineConfig({
     // Ensure proper headless execution
     chromeWebSecurity: false,
     experimentalModifyObstructiveThirdPartyCode: false,
+    // Try to avoid bot detection
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     env: {
       PERSONIO_USERNAME: process.env.PERSONIO_USERNAME || '',
       PERSONIO_PASSWORD: process.env.PERSONIO_PASSWORD || '',
@@ -23,6 +25,21 @@ module.exports = defineConfig({
     },
     setupNodeEvents(on, config) {
       // implement node event listeners here
+      on('before:browser:launch', (browser, launchOptions) => {
+        if (browser.name === 'chrome') {
+          // Add arguments to make it look more like a real browser
+          launchOptions.args.push('--disable-blink-features=AutomationControlled')
+          launchOptions.args.push('--disable-features=VizDisplayCompositor')
+          launchOptions.args.push('--disable-web-security')
+          launchOptions.args.push('--disable-features=TranslateUI')
+          launchOptions.args.push('--disable-ipc-flooding-protection')
+          // Remove automation indicators
+          launchOptions.args.push('--exclude-switches=enable-automation')
+          launchOptions.args.push('--disable-extensions-except')
+          launchOptions.args.push('--disable-plugins-except')
+        }
+        return launchOptions
+      })
     },
   },
 }) 
