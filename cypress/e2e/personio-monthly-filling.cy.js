@@ -1,9 +1,7 @@
 describe('Fill Empty Timecards', () => {
   it('should fill empty timecards with random start times and calculated end times', () => {
-    // Clear the log file at the start of each test
     cy.writeFile('cypress/logs/fill-empty-timecards-debug.log', '')
     
-    // Helper function to log to both console and file
     const logToFile = (message) => {
       cy.log(message)
       cy.writeFile('cypress/logs/fill-empty-timecards-debug.log', `${new Date().toISOString()}: ${message}\n`, { flag: 'a+' })
@@ -18,7 +16,6 @@ describe('Fill Empty Timecards', () => {
     logToFile('Starting fill empty timecards test')
     logToFile(`Previous month mode: ${previousMonth}`)
     
-    // Validate that all required environment variables are present
     if (!companyDomain || !username || !password || !employeeId) {
       const missingVars = []
       if (!companyDomain) missingVars.push('PERSONIO_COMPANY_DOMAIN')
@@ -30,16 +27,13 @@ describe('Fill Empty Timecards', () => {
       throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`)
     }
     
-    // Calculate the target month (current or previous)
     const currentDate = new Date()
     let targetDate
     
     if (previousMonth) {
-      // Get previous month
       targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
       logToFile('Targeting previous month for timecard filling')
     } else {
-      // Use current month
       targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
       logToFile('Targeting current month for timecard filling')
     }
@@ -48,56 +42,45 @@ describe('Fill Empty Timecards', () => {
     const targetMonth = targetDate.getMonth() + 1
     const startDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`
     
-    // Calculate end date (last day of the target month)
     const lastDay = new Date(targetYear, targetMonth, 0).getDate()
     const endDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
     
     logToFile(`Target period: ${startDate} to ${endDate}`)
     
-    // Step 1: Try going directly to the company-specific login URL to bypass the main login page
     const companyLoginUrl = `https://${companyDomain}.app.personio.com/login`
     logToFile(`Attempting direct login to: ${companyLoginUrl}`)
     
     cy.visit(companyLoginUrl)
     logToFile('Visited company-specific login page')
     
-    // Wait for the page to load
     cy.get('body').should('be.visible')
     cy.wait(3000)
     
-    // Check if we get redirected to the main login page or if we're on the company login
     cy.url().then((url) => {
       logToFile(`Current URL after visit: ${url}`)
       
       if (url.includes('login.personio.com')) {
-        // We're on the main login page, try the original approach
         logToFile('Redirected to main login page, trying original approach')
         
-        // Hide automation indicators that might trigger bot detection
         cy.window().then((win) => {
-          // Remove webdriver property
           delete win.navigator.webdriver
-          // Override the webdriver property
           Object.defineProperty(win.navigator, 'webdriver', {
             get: () => undefined,
           })
-          // Remove automation indicators if chrome exists
           if (win.chrome && win.chrome.runtime) {
             delete win.chrome.runtime.onConnect
             delete win.chrome.runtime.onMessage
           }
         })
         
-        // Handle cookie consent dialog if it appears
         cy.get('body').then(($body) => {
           if ($body.find('button:contains("Alles akzeptieren"), button:contains("Accept All")').length > 0) {
             logToFile('Cookie consent dialog detected, clicking Accept All')
             cy.get('button:contains("Alles akzeptieren"), button:contains("Accept All")').first().click()
-            cy.wait(2000) // Wait for dialog to close
+            cy.wait(2000)
           }
         })
         
-        // Debug: Log all input elements on the page
         cy.get('body').then(($body) => {
           logToFile('Looking for input elements on login page...')
           cy.get('input').then(($inputs) => {
@@ -108,53 +91,40 @@ describe('Fill Empty Timecards', () => {
           })
         })
         
-        // Wait for the email input field to be visible
         cy.get('input[name="username"], input[id="username"]', { timeout: 15000 }).should('be.visible')
         
-        // Fill the email/username field
         cy.get('input[name="username"], input[id="username"]').first().clear({ force: true }).type(username, { force: true })
         logToFile(`Filled email/username: ${username}`)
         
-        // Find and click the Continue button
         cy.get('button:contains("Continue"), button:contains("Weiter"), button[type="submit"]').should('be.visible').first().click({ force: true })
         logToFile('Clicked Continue button')
       } else {
-        // We're on the company login page, proceed directly to login
         logToFile('Successfully on company login page, proceeding with login')
         
-        // Wait for the email input field to be visible
         cy.get('input[name="username"], input[id="username"]', { timeout: 15000 }).should('be.visible')
         
-        // Fill the email/username field
         cy.get('input[name="username"], input[id="username"]').first().clear({ force: true }).type(username, { force: true })
         logToFile(`Filled email/username: ${username}`)
         
-        // Find and click the Continue button
         cy.get('button:contains("Continue"), button:contains("Weiter"), button[type="submit"]').should('be.visible').first().click({ force: true })
         logToFile('Clicked Continue button')
       }
     })
     
-    // Step 4: Wait for password field and complete login (still on login.personio.com)
     cy.wait(3000)
     
-    // Wait for password field to appear after clicking Continue
     cy.get('input[type="password"]', { timeout: 15000 }).should('be.visible')
     
-    // Fill in password
     logToFile(`About to fill password field with: ${password}`)
     cy.get('input[type="password"]').first().clear({ force: true }).type(password, { force: true })
     logToFile('Filled password')
     
-    // Click login/submit button
     cy.get('button[type="submit"], button:contains("Sign in"), button:contains("Login"), button:contains("Einloggen")').should('be.visible').first().click({ force: true })
     logToFile('Submitted login credentials')
     
-    // Wait for navigation to company domain
     cy.wait(5000)
     logToFile('Navigated to company app domain')
     
-    // Step 5: Navigate to company domain and fill empty timecards
     cy.origin('https://alpine-eagle-gmbh.app.personio.com', { args: { employeeId, startDate, endDate, previousMonth, targetDate } }, ({ employeeId, startDate, endDate, previousMonth, targetDate }) => {
       const logToFile = (message) => {
         cy.log(message)
@@ -164,14 +134,11 @@ describe('Fill Empty Timecards', () => {
       cy.wait(5000)
       logToFile('Navigated to company app domain')
       
-      // Verify successful login
       cy.url().should('include', 'alpine-eagle-gmbh.app.personio.com')
       logToFile('Successfully logged in to company domain')
       
-      // Wait for page to fully load
       cy.wait(3000)
       
-      // Helper function to generate random time between 7:45 and 9:05
       const generateRandomStartTime = () => {
         const startHour = 7
         const startMinute = 45
@@ -188,7 +155,6 @@ describe('Fill Empty Timecards', () => {
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
       }
       
-      // Helper function to generate UUID
       const generateUUID = () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
           const r = Math.random() * 16 | 0
@@ -197,12 +163,10 @@ describe('Fill Empty Timecards', () => {
         })
       }
       
-      // Helper function to calculate end time (8.5-9.5 hours after start)
       const calculateEndTime = (startTime) => {
         const [startHour, startMinute] = startTime.split(':').map(Number)
         const startTotalMinutes = startHour * 60 + startMinute
         
-        // Random duration between 8.5 and 9.5 hours (510-570 minutes)
         const minDuration = 8.5 * 60 // 510 minutes
         const maxDuration = 9.5 * 60 // 570 minutes
         const randomDuration = Math.floor(Math.random() * (maxDuration - minDuration + 1)) + minDuration
@@ -214,34 +178,28 @@ describe('Fill Empty Timecards', () => {
         return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`
       }
       
-      // Helper function to check if a timecard is empty (no periods)
       const isEmptyTimecard = (timecard) => {
         return !timecard.periods || timecard.periods.length === 0
       }
       
-      // Helper function to check if a timecard should be skipped (holiday, weekend, etc.)
       const shouldSkipTimecard = (timecard) => {
-        // Skip if it's an off day (weekends, holidays)
+       
         if (timecard.is_off_day) {
           return true
         }
         
-        // For previous month mode: only process timecards from the previous month
-        // For current month mode: skip if it's in the future (only process today or past)
+        
         if (previousMonth) {
-          // Get the target month's date range
           const targetYear = targetDate.getFullYear()
           const targetMonth = targetDate.getMonth() + 1
           const targetStartDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-01`
           const lastDay = new Date(targetYear, targetMonth, 0).getDate()
           const targetEndDate = `${targetYear}-${targetMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
           
-          // Only process timecards within the target month range
           if (timecard.date < targetStartDate || timecard.date > targetEndDate) {
             return true
           }
         } else {
-          // Current month mode: skip if it's in the future
           const today = new Date().toISOString().split('T')[0]
           if (timecard.date > today) {
             return true
@@ -253,28 +211,45 @@ describe('Fill Empty Timecards', () => {
       
       logToFile(`Starting to process empty timecards for period: ${startDate} to ${endDate}...`)
       
-      // Use the exact cookie string provided by user
-      const cookieString = '_vwo_uuid_v2=DC297C5C1656F50BDC95CBA2365657E3F|be8c4be57dc267e742a6ce3ca0460543; _fbp=fb.1.1744263825148.670913820242765381; ajs_user_id=null; ajs_group_id=null; ajs_anonymous_id=%220205d21b-be31-482b-afe6-6a79560a5ea3%22; _vwo_uuid=DC297C5C1656F50BDC95CBA2365657E3F; _ga=GA1.1.222114950.1744263825; hubspotutk=4ce5cf7561614f9e25d93c69cd5867ae; _pc=true; product_language=en-GB|27547954; ATHENA_SESSION=b83b1e27-9e93-4d7e-82f9-4c96909c2f69; ATHENA-XSRF-TOKEN=aba2daf9-4327-4dbb-95f0-b968b5523dd7.xbnVxnXS8s4kJ8DDKJ1uWDynZytMqQcKHx2Wi5Ig7oQ; personio_session=eyJpdiI6IlRlZ05JMUttVXFodzd2eXR6WEYzZmc9PSIsInZhbHVlIjoiSm9BVTJ4RXo3RmNOd1ZEUnFtM3FicTRZd3RyeDgvYm4wbUpyUnB4ck1mb2JXVW0vb0FlZTkvR0J1MThjQ2VpZmM2b0Q4Z3BMM21SR3JMbFl3V3B1N00zK3c1UE1vQUF6aHRWWUt0TGhXYU5pWVBpRHZjZFptMDU0QVY3eE5XNmQiLCJtYWMiOiJhZjYxNmU2YWZjMjJjYWM3OWYzYjhmNjM2YWM4NTQ3OTcyYjJjZWFjMzg2NDA3NTViYzIzM2U0OWI1YWZmMjIxIiwidGFnIjoiIn0%3D; _dd_s=aid=r7sp4zusof&rum=0&expire=1753860924146'
-      
-      const csrfToken = 'aba2daf9-4327-4dbb-95f0-b968b5523dd7.xbnVxnXS8s4kJ8DDKJ1uWDynZytMqQcKHx2Wi5Ig7oQ'
-      
-      logToFile(`Using exact cookie string: ${cookieString.substring(0, 100)}...`)
-      logToFile(`Using CSRF token: ${csrfToken}`)
-      
-      logToFile(`Fetching timesheet for period: ${startDate} to ${endDate}`)
-      
-      // Test the timesheet API first
-      cy.request({
-        method: 'GET',
-        url: `https://alpine-eagle-gmbh.app.personio.com/svc/attendance-bff/v1/timesheet/${employeeId}?start_date=${startDate}&end_date=${endDate}&timezone=Europe%2FBerlin`,
-        headers: {
-          'Cookie': cookieString,
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-Token': csrfToken,
-          'X-ATHENA-XSRF-TOKEN': csrfToken
-        },
-        failOnStatusCode: false
-      }).then((response) => {
+      cy.getCookies().then((cookies) => {
+        let csrfToken = null
+        const csrfCookie = cookies.find(c => c.name === 'ATHENA-XSRF-TOKEN')
+        if (csrfCookie) {
+          csrfToken = csrfCookie.value
+          logToFile(`Found CSRF token in cookie: ${csrfToken.substring(0, 50)}...`)
+        } else {
+          logToFile('⚠️ CSRF token not found in cookies, will try to get from API response')
+        }
+        
+        logToFile(`Fetching timesheet for period: ${startDate} to ${endDate}`)
+        
+        const headers = {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+        if (csrfToken) {
+          headers['X-CSRF-Token'] = csrfToken
+          headers['X-ATHENA-XSRF-TOKEN'] = csrfToken
+        }
+        
+        cy.request({
+          method: 'GET',
+          url: `https://alpine-eagle-gmbh.app.personio.com/svc/attendance-bff/v1/timesheet/${employeeId}?start_date=${startDate}&end_date=${endDate}&timezone=Europe%2FBerlin`,
+          headers: headers,
+          failOnStatusCode: false
+        }).then((response) => {
+          if (!csrfToken && response.headers['set-cookie']) {
+            const setCookieHeader = Array.isArray(response.headers['set-cookie']) 
+              ? response.headers['set-cookie'] 
+              : [response.headers['set-cookie']]
+            const xsrfCookie = setCookieHeader.find(c => c.includes('ATHENA-XSRF-TOKEN'))
+            if (xsrfCookie) {
+              const match = xsrfCookie.match(/ATHENA-XSRF-TOKEN=([^;]+)/)
+              if (match) {
+                csrfToken = match[1]
+                logToFile(`Extracted CSRF token from response: ${csrfToken.substring(0, 50)}...`)
+              }
+            }
+          }
         logToFile(`Timesheet API response status: ${response.status}`)
         logToFile(`Response headers: ${JSON.stringify(response.headers, null, 2)}`)
         logToFile(`Response body type: ${typeof response.body}`)
@@ -284,7 +259,6 @@ describe('Fill Empty Timecards', () => {
           let timesheetData
           
           try {
-            // Ensure response.body is a valid object
             timesheetData = typeof response.body === 'string' ? JSON.parse(response.body) : response.body
             logToFile('✅ Successfully fetched timesheet data')
             logToFile(`Response body keys: ${Object.keys(timesheetData)}`)
@@ -294,7 +268,6 @@ describe('Fill Empty Timecards', () => {
               return
             }
             
-            // Log all timecards for debugging
             logToFile(`Total timecards in response: ${timesheetData.timecards.length}`)
             
           } catch (error) {
@@ -303,7 +276,6 @@ describe('Fill Empty Timecards', () => {
             return
           }
           
-          // Filter empty timecards that should be processed
           const emptyTimecards = timesheetData.timecards.filter(timecard => {
             const isEmpty = isEmptyTimecard(timecard)
             const shouldSkip = shouldSkipTimecard(timecard)
@@ -320,21 +292,19 @@ describe('Fill Empty Timecards', () => {
           })
           
           logToFile(`Found ${emptyTimecards.length} empty timecards to fill`)
+          logToFile(`Using CSRF token for PUT requests: ${csrfToken ? csrfToken.substring(0, 50) + '...' : 'NOT FOUND'}`)
           
           if (emptyTimecards.length > 0) {
-            // Process each empty timecard
             emptyTimecards.forEach((timecard, index) => {
               logToFile(`Processing timecard ${index + 1}/${emptyTimecards.length} for date: ${timecard.date}`)
               
-              // Generate random start time
               const startTime = generateRandomStartTime()
               const endTime = calculateEndTime(startTime)
               
               logToFile(`Generated start time: ${startTime}, end time: ${endTime}`)
               
-              // Create new period data with proper UUID
               const newPeriod = {
-                "id": generateUUID(), // Generate new UUID for the period
+                "id": generateUUID(), 
                 "comment": null,
                 "period_type": "work",
                 "project_id": null,
@@ -353,21 +323,23 @@ describe('Fill Empty Timecards', () => {
               
               logToFile(`Create payload for ${timecard.date}: ${JSON.stringify(createPayload, null, 2)}`)
               
-              // Always use PUT - generate day_id UUID if it's missing
               const dayId = timecard.day_id || generateUUID()
               const apiUrl = `https://alpine-eagle-gmbh.app.personio.com/svc/attendance-api/v1/days/${dayId}`
               const method = 'PUT'
               
+              const putHeaders = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+              if (csrfToken) {
+                putHeaders['X-CSRF-Token'] = csrfToken
+                putHeaders['X-ATHENA-XSRF-TOKEN'] = csrfToken
+              }
+              
               cy.request({
                 method: method,
                 url: apiUrl,
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Cookie': cookieString,
-                  'X-Requested-With': 'XMLHttpRequest',
-                  'X-CSRF-Token': csrfToken,
-                  'X-ATHENA-XSRF-TOKEN': csrfToken
-                },
+                headers: putHeaders,
                 body: createPayload,
                 failOnStatusCode: false
               }).then((response) => {
@@ -389,6 +361,7 @@ describe('Fill Empty Timecards', () => {
           logToFile(`❌ Failed to fetch timesheet data: ${response.status}`)
         }
       })
+      }) 
     })
   })
 }) 
