@@ -206,8 +206,8 @@ describe("Fill Empty Timecards", () => {
           const endHour = 9;
           const endMinute = 5;
 
-          const startMinutes = startHour * 60 + startMinute; // 7:45 = 465 minutes
-          const endMinutes = endHour * 60 + endMinute; // 9:05 = 545 minutes
+          const startMinutes = startHour * 60 + startMinute;
+          const endMinutes = endHour * 60 + endMinute;
 
           const randomMinutes =
             Math.floor(Math.random() * (endMinutes - startMinutes + 1)) +
@@ -229,17 +229,50 @@ describe("Fill Empty Timecards", () => {
           );
         };
 
-        const calculateEndTime = (startTime) => {
+        const getTimeOffDuration = (timecard) => {
+          if (
+            !timecard.time_off ||
+            !timecard.time_off.items ||
+            timecard.time_off.items.length === 0
+          ) {
+            return 0;
+          }
+
+          if (
+            timecard.time_off.aggregated_duration_minutes !== null &&
+            timecard.time_off.aggregated_duration_minutes !== undefined
+          ) {
+            return timecard.time_off.aggregated_duration_minutes;
+          }
+
+          const totalDuration = timecard.time_off.items.reduce((sum, item) => {
+            const duration =
+              item.duration_minutes === null ? 480 : item.duration_minutes;
+            return sum + (duration || 0);
+          }, 0);
+
+          return totalDuration;
+        };
+
+        const calculateEndTime = (
+          startTime,
+          targetWorkDurationMinutes = null,
+        ) => {
           const [startHour, startMinute] = startTime.split(":").map(Number);
           const startTotalMinutes = startHour * 60 + startMinute;
 
-          const minDuration = 8.5 * 60; // 510 minutes
-          const maxDuration = 9.5 * 60; // 570 minutes
-          const randomDuration =
-            Math.floor(Math.random() * (maxDuration - minDuration + 1)) +
-            minDuration;
+          let workDuration;
+          if (targetWorkDurationMinutes !== null) {
+            workDuration = targetWorkDurationMinutes;
+          } else {
+            const minDuration = 8.5 * 60;
+            const maxDuration = 9.5 * 60;
+            workDuration =
+              Math.floor(Math.random() * (maxDuration - minDuration + 1)) +
+              minDuration;
+          }
 
-          const endTotalMinutes = startTotalMinutes + randomDuration;
+          const endTotalMinutes = startTotalMinutes + workDuration;
           const endHours = Math.floor(endTotalMinutes / 60);
           const endMinutes = endTotalMinutes % 60;
 
@@ -253,6 +286,21 @@ describe("Fill Empty Timecards", () => {
         const shouldSkipTimecard = (timecard) => {
           if (timecard.is_off_day) {
             return true;
+          }
+
+          const timeOffDuration = getTimeOffDuration(timecard);
+          if (timeOffDuration > 0) {
+            const timeOffItems = timecard.time_off.items;
+            const hasFullDayOff = timeOffItems.some(
+              (item) =>
+                item.duration_minutes === null || item.duration_minutes === 480,
+            );
+            if (
+              hasFullDayOff ||
+              timecard.time_off.aggregated_duration_minutes === 480
+            ) {
+              return true;
+            }
           }
 
           if (previousMonth) {
@@ -379,12 +427,66 @@ describe("Fill Empty Timecards", () => {
                   const shouldSkip = shouldSkipTimecard(timecard);
 
                   if (isEmpty && !shouldSkip) {
-                    logToFile(
-                      `✅ Will process empty timecard for date: ${timecard.date}`,
-                    );
+                    const timeOffDuration = getTimeOffDuration(timecard);
+                    if (timeOffDuration > 0 && timeOffDuration < 480) {
+                      const timeOffTypes = timecard.time_off.items.map(
+                        (item) => item.name || item.type,
+                      );
+                      logToFile(
+                        `✅ Will process empty timecard for date: ${timecard.date} (partial time off: ${timeOffTypes.join(", ")}, ${timeOffDuration} min)`,
+                      );
+                    } else {
+                      logToFile(
+                        `✅ Will process empty timecard for date: ${timecard.date}`,
+                      );
+                    }
                   } else if (isEmpty && shouldSkip) {
+                    const skipReasons = [];
+                    if (timecard.is_off_day) skipReasons.push("off day");
+                    const timeOffDuration = getTimeOffDuration(timecard);
+                    if (timeOffDuration > 0) {
+                      const timeOffItems = timecard.time_off.items;
+                      const hasFullDayOff = timeOffItems.some(
+                        (item) =>
+                          item.duration_minutes === null ||
+                          item.duration_minutes === 480,
+                      );
+                      if (
+                        hasFullDayOff ||
+                        timecard.time_off.aggregated_duration_minutes === 480
+                      ) {
+                        const timeOffTypes = timecard.time_off.items.map(
+                          (item) => item.name || item.type,
+                        );
+                        skipReasons.push(
+                          `full day time off (${timeOffTypes.join(", ")})`,
+                        );
+                      }
+                    }
+                    if (previousMonth) {
+                      const targetYear = targetDate.getFullYear();
+                      const targetMonth = targetDate.getMonth() + 1;
+                      const targetStartDate = `${targetYear}-${targetMonth.toString().padStart(2, "0")}-01`;
+                      const lastDay = new Date(
+                        targetYear,
+                        targetMonth,
+                        0,
+                      ).getDate();
+                      const targetEndDate = `${targetYear}-${targetMonth.toString().padStart(2, "0")}-${lastDay.toString().padStart(2, "0")}`;
+                      if (
+                        timecard.date < targetStartDate ||
+                        timecard.date > targetEndDate
+                      ) {
+                        skipReasons.push("outside target range");
+                      }
+                    } else {
+                      const today = new Date().toISOString().split("T")[0];
+                      if (timecard.date > today) {
+                        skipReasons.push("future date");
+                      }
+                    }
                     logToFile(
-                      `⏭️ Skipping empty timecard for date: ${timecard.date} (off day or outside target range)`,
+                      `⏭️ Skipping empty timecard for date: ${timecard.date} (${skipReasons.join(", ")})`,
                     );
                   } else if (!isEmpty) {
                     logToFile(
@@ -409,11 +511,24 @@ describe("Fill Empty Timecards", () => {
                     `Processing timecard ${index + 1}/${emptyTimecards.length} for date: ${timecard.date}`,
                   );
 
+                  const timeOffDuration = getTimeOffDuration(timecard);
+                  let targetWorkDuration = null;
+
+                  if (timeOffDuration > 0 && timeOffDuration < 480) {
+                    targetWorkDuration = 480 - timeOffDuration;
+                    logToFile(
+                      `⚠️ Partial time off detected: ${timeOffDuration} minutes off, adjusting work duration to ${targetWorkDuration} minutes (${(targetWorkDuration / 60).toFixed(1)} hours)`,
+                    );
+                  }
+
                   const startTime = generateRandomStartTime();
-                  const endTime = calculateEndTime(startTime);
+                  const endTime = calculateEndTime(
+                    startTime,
+                    targetWorkDuration,
+                  );
 
                   logToFile(
-                    `Generated start time: ${startTime}, end time: ${endTime}`,
+                    `Generated start time: ${startTime}, end time: ${endTime}${targetWorkDuration ? ` (adjusted for partial time off)` : ""}`,
                   );
 
                   const newPeriod = {

@@ -6,7 +6,8 @@ This project automates the filling of empty timecards in Personio with realistic
 
 - ✅ **Random Start Times**: Generates start times between 7:45 AM and 9:05 AM
 - ✅ **Realistic Work Hours**: Calculates end times 8.5-9.5 hours after start time
-- ✅ **Smart Filtering**: Skips weekends, holidays, and future dates
+- ✅ **Smart Filtering**: Skips weekends, holidays, full-day time off, and future dates
+- ✅ **Partial Time Off Handling**: Automatically adjusts work hours for partial time off (e.g., half-day vacation, partial holidays)
 - ✅ **Secure Credentials**: Uses environment variables for sensitive data
 - ✅ **UUID Generation**: Properly generates UUIDs for timecard and period IDs
 - ✅ **API Integration**: Uses Personio's REST API for reliable updates
@@ -79,14 +80,21 @@ npx cypress run --spec "cypress/e2e/personio-monthly-filling.cy.js" --env PREVIO
    - **Current Month**: Processes the current month's timecards
 3. **Fetch Timecards**: Retrieves timecard data for the target month
 4. **Filter Empty**: Identifies empty timecards (no periods) that are:
-   - Not off days (weekends/holidays)
+   - Not off days (weekends/holidays marked by Personio)
+   - Not full-day time off (sickness, vacation, holidays with 8 hours/480 minutes)
    - For current month: Today or in the past (no future updates)
    - For previous month: All days can be filled (no date restrictions)
-5. **Generate Data**: Creates realistic work periods with:
+5. **Handle Partial Time Off**: For timecards with partial time off (1-479 minutes):
+   - Calculates remaining work hours: `8 hours (480 min) - time off duration`
+   - Example: If 4 hours (240 min) are taken off, fills remaining 4 hours (240 min)
+   - Ensures total work + time off doesn't exceed 8 hours
+6. **Generate Data**: Creates realistic work periods with:
    - Random start times (7:45-9:05)
-   - Calculated end times (8.5-9.5 hours later)
+   - Calculated end times:
+     - **Normal days**: 8.5-9.5 hours after start time
+     - **Partial time off days**: Adjusted to match remaining work hours
    - Proper UUIDs for timecard and period IDs
-6. **Update API**: Uses PUT requests to update timecards via Personio API
+7. **Update API**: Uses PUT requests to update timecards via Personio API
 
 ### Previous Month Mode
 Use the `PREVIOUS_MONTH` parameter to fill timecards for the previous month. This is useful when:
@@ -95,6 +103,24 @@ Use the `PREVIOUS_MONTH` parameter to fill timecards for the previous month. Thi
 - The system shows the current month by default, but you need to fill previous month data
 
 **Important**: When `PREVIOUS_MONTH=true`, the script will **only** process timecards from the previous month and will **not** touch any current month timecards, even if they are empty.
+
+### Time Off Handling
+
+The script intelligently handles different types of time off:
+
+- **Full-Day Time Off** (8 hours/480 minutes or null duration):
+  - Skipped entirely - no work hours are filled
+  - Examples: Full-day vacation, full-day sickness, full-day holidays
+
+- **Partial Time Off** (1-479 minutes):
+  - Work hours are still filled, but adjusted to match remaining time
+  - Formula: `Work Duration = 480 minutes - Time Off Duration`
+  - Examples:
+    - 4 hours (240 min) off → fills remaining 4 hours (240 min)
+    - 2 hours (120 min) off → fills remaining 6 hours (360 min)
+    - Half-day holiday → fills remaining half day
+
+This ensures that the total of work hours + time off never exceeds the standard 8-hour work day.
 
 ## Security
 
